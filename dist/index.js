@@ -16,6 +16,7 @@ const express_1 = __importDefault(require("express"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const db_1 = require("./db");
 const JWT_PASSWORD = "123123";
+const middelware_1 = require("./middelware");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.post("/api/v1/signup", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -58,8 +59,30 @@ app.post("/api/v1/signin", (req, res) => __awaiter(void 0, void 0, void 0, funct
         });
     }
 }));
-app.get("/api/v1/content", (req, res) => {
-});
+app.post("/api/v1/content", middelware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const link = req.body.link;
+    const type = req.body.type;
+    yield db_1.ContentModel.create({
+        link,
+        type,
+        //@ts-ignore
+        userId: req.userId,
+        tags: []
+    });
+    res.json({
+        message: "Content added"
+    });
+}));
+app.get("/api/v1/content", middelware_1.userMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    //@ts-ignore
+    const userId = req.userId;
+    const content = yield db_1.ContentModel.find({
+        userId: userId
+    });
+    res.json({
+        content
+    });
+}));
 app.delete("/api/v1/signup", (req, res) => {
 });
 app.post("/api/v1/brain/share", (req, res) => {
